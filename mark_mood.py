@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 import sys
 
 import nltk
@@ -54,22 +55,15 @@ def get_emotion(json_line):
     return json_line
 
 
-def save_to_file(json_lines):
-    with open(output_file_name, 'w') as outfile:
-        json.dump(json_lines, outfile)
-
-
-""" Main program loop """
-for row in rows[1:]:
-
-    if row == '':
-        continue
+def process_line(json_line):
+    if json_line == '':
+        return json_line
 
     """ parse this row into a json object """
-    json_row = json.loads(row)
+    json_row = json.loads(json_line)
 
     if 'text' not in json_row and not json_row['text']:
-        continue
+        return json_line
 
     print(f"Analyzing sentence: {json_row['text']}")
 
@@ -85,7 +79,26 @@ for row in rows[1:]:
     print("Expanding contractions...")
     json_row = expand_contractions(json_row)
 
-    annotated_rows.append(json_row)
+    return json_row
 
-""" Save the results to a file"""
-save_to_file(annotated_rows)
+
+def save_to_file(json_lines):
+    with open(output_file_name, 'w') as outfile:
+        json.dump(json_lines, outfile)
+
+
+if __name__ == '__main__':
+
+    """ Thread pool for the main app """
+    pool = multiprocessing.Pool()
+    results = pool.map(process_line, rows[1:])
+
+    """ Main program loop """
+    for result in results:
+        annotated_rows.append(result)
+
+    pool.close()
+    pool.join()
+
+    """ Save the results to a file"""
+    save_to_file(annotated_rows)
