@@ -40,7 +40,7 @@ The script will process the data, perform sentiment and emotion analysis, and pr
 The input data file should be in the following format:
 
 ```json
-{"role": "caller", "tZext": "in what way what do you mean ?"}
+{"role": "caller", "text": "in what way what do you mean ?"}
 {"role": "rep", "text": "It just not telling you the truth..."}
 {"role": "rep", "text": "actually told me that ..."}
 {"role": "rep", "text": "probably started..."}
@@ -53,16 +53,16 @@ The output format, after processing, will look like this:
 
 ```json
 {
-  'role': 'caller',
-  'text': 'is well because again it is still fresh...',
-  'classification': 'pos',
-  'p_pos': 72.72077804136673,
-  'p_neg': 27.279221958633286,
-  'polarity': 0.38727272727272727,
-  'subjectivity': 0.550909090909091,
-  'emotion_scores': {
-    'joy': 3,
-    'positive': 3
+  "role": "caller",
+  "text": "is well because again it is still fresh...",
+  "classification": "pos",
+  "p_pos": 72.72077804136673,
+  "p_neg": 27.279221958633286,
+  "polarity": 0.38727272727272727,
+  "subjectivity": 0.550909090909091,
+  "emotion_scores": {
+    "joy": 3,
+    "positive": 3
   }
 }
 ```
@@ -82,6 +82,3 @@ Contributions are welcome! Feel free to open issues or submit pull requests.
 
 ## License 📄
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
-# py-mood-marker
