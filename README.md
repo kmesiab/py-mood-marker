@@ -5,24 +5,23 @@
 [![GitHub stars](https://img.shields.io/github/stars/kmesiab/py-mood-marker)](https://github.com/kmesiab/py-mood-marker/stargazers)
 
 ## Overview 🚀
-Py-Mood-Marker is a Python application designed to analyze conversational data, particularly focusing on extracting sentiments and emotions from text. It reads data from a JSON file, processes each entry to determine the sentiment and emotional content, and outputs enhanced data with these additional metadata.
+Py-Mood-Marker is a Python application designed to analyze conversational data, focusing on extracting sentiments and emotions from text. It reads data from a JSON file, processes each entry to determine the sentiment, emotional content, and overall intensity of sentiments, and outputs enhanced data with these additional metadata.
 
 ## Key Features 🌟
-- **Sentiment Analysis**: Determines the overall sentiment (positive or negative) of the text.
-- **Emotion Analysis**: Identifies various emotions present in the text.
+- **Sentiment Analysis**: Utilizes VADER (Valence Aware Dictionary and sEntiment Reasoner) to determine the overall sentiment intensity of the text.
+- **Emotion Analysis**: Identifies various emotions present in the text using NRCLex.
 - **Contraction Expansion**: Expands contracted forms (e.g., "I'm" to "I am") in the text for better analysis.
 
 ## Installation 📦
 Before running the application, ensure you have the following Python packages installed:
-- NLTK
-- TextBlob
-- NRCLex
 - contractions
+- NRCLex
+- vaderSentiment
 
 You can install these packages using pip:
 
 ```ssh
-pip install nltk textblob nrclex contractions
+pip install contractions nrclex vaderSentiment
 ```
 
 ## Usage 📝
@@ -33,7 +32,7 @@ pip install nltk textblob nrclex contractions
 python mark_mood.py
 ```
 
-The script will process the data, perform sentiment and emotion analysis, and print the enhanced data to the console.
+The script will process the data, perform sentiment and emotion analysis using VADER and NRCLex, expand contractions, and print the enhanced data to the console.
 
 ## Data File
 
@@ -55,11 +54,12 @@ The output format, after processing, will look like this:
 {
   "role": "caller",
   "text": "is well because again it is still fresh...",
-  "classification": "pos",
-  "p_pos": 72.72077804136673,
-  "p_neg": 27.279221958633286,
-  "polarity": 0.38727272727272727,
-  "subjectivity": 0.550909090909091,
+  "vader_emotion_scores": {
+    "neg": 0.1,
+    "neu": 0.8,
+    "pos": 0.1,
+    "compound": 0.2
+  },
   "emotion_scores": {
     "joy": 3,
     "positive": 3
@@ -70,12 +70,8 @@ The output format, after processing, will look like this:
 In the output, the "role" and "text" remain the same, but additional metadata is added:
 
 ## Metadata Explanation 📋
-- `classification`: The sentiment classification (positive or negative).
-- `p_pos`: The probability of a positive sentiment (percentage).
-- `p_neg`: The probability of a negative sentiment (percentage).
-- `polarity`: The polarity score (-1 for negative, 1 for positive).
-- `subjectivity`: The subjectivity score (0 for objective, 1 for subjective).
-- `emotion_scores`: A dictionary containing emotion scores based on analysis.
+- `vader_emotion_scores`: A dictionary containing sentiment scores (negative, neutral, positive, and compound) from VADER analysis.
+- `emotion_scores`: A dictionary containing emotion scores based on NRCLex analysis.
 
 ## Contributing 🤝
 Contributions are welcome! Feel free to open issues or submit pull requests.
