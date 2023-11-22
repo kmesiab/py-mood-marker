@@ -3,43 +3,12 @@ import multiprocessing
 import sys
 import time
 
-import nltk
 import contractions
-
 from nrclex import NRCLex
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from textblob import TextBlob
-from textblob.en.sentiments import NaiveBayesAnalyzer
-
-try:
-    nltk.download('movie_reviews')
-except Exception as e:
-    print(f"An error occurred: {e}")
-    print("Could not download the required NLTK data. Exiting the program.")
-    sys.exit(1)
-
-try:
-    nltk.download('punkt')
-except Exception as e:
-    print(f"An error occurred: {e}")
-    print("Could not download the required NLTK data. Exiting the program.")
-    sys.exit(1)
-
-csv_contents = open('data.json', 'r').read()
-rows = csv_contents.split('\n')
-
-annotated_rows = []
+min_word_count = 5
 output_file_name = "mood-marked.json"
-
-
-def get_sentiment(json_line):
-    text_blob = TextBlob(json_line['text'], analyzer=NaiveBayesAnalyzer())
-    json_line['classification'] = text_blob.sentiment.classification
-    json_line['p_pos'] = text_blob.sentiment.p_pos * 100
-    json_line['p_neg'] = text_blob.sentiment.p_neg * 100
-    json_line['polarity'] = text_blob.polarity.real
-    json_line['subjectivity'] = text_blob.subjectivity.real
-    return json_line
 
 
 def expand_contractions(json_line):
@@ -56,28 +25,34 @@ def get_emotion(json_line):
     return json_line
 
 
+def get_vader_emotion(json_line):
+    analyzer = SentimentIntensityAnalyzer()
+    vs = analyzer.polarity_scores(json_line['text'])
+    json_line['vader_emotion_scores'] = vs
+    return json_line
+
+
+# Function to process each line of JSON
 def process_line(json_line):
-    if json_line == '':
-        return json_line
+    if not json_line.strip():
+        return None
 
-    """ parse this row into a json object """
-    json_row = json.loads(json_line)
+    try:
+        json_row = json.loads(json_line)
+    except json.JSONDecodeError:
+        print(f"Error decoding JSON: {json_line}")
+        return None
 
-    if 'text' not in json_row and not json_row['text']:
-        return json_line
+    if 'text' not in json_row or not json_row['text']:
+        return None
 
-    print(f"Analyzing sentence: {json_row['text']}")
+    word_count = len(json_row['text'].split())
 
-    """ get the sentiment of this row """
-    print("Analyzing sentiment...")
-    json_row = get_sentiment(json_row)
+    if word_count < min_word_count:
+        return json_row
 
-    """ expand the contractions """
-    print("Analyzing emotion...")
     json_row = get_emotion(json_row)
-
-    """ expand the contractions """
-    print("Expanding contractions...")
+    json_row = get_vader_emotion(json_row)
     json_row = expand_contractions(json_row)
 
     return json_row
@@ -92,18 +67,31 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
-    """ Thread pool for the main app """
-    pool = multiprocessing.Pool(maxtasksperchild=100)
-    results = pool.map(process_line, rows[1:])
+    # Read the input file
+    try:
+        with open('data.json', 'r') as file:
+            csv_contents = file.read()
+    except FileNotFoundError:
+        print("Error: The file 'data.json' was not found.")
+        sys.exit(1)
+    except IOError:
+        print("Error: An I/O error occurred while reading 'data.json'.")
+        sys.exit(1)
 
-    """ Main program loop """
+    # Split the file content into rows
+    rows = csv_contents.split('\n')
+    annotated_rows = []
+
+    # Process lines using a thread pool
+    with multiprocessing.Pool(maxtasksperchild=10) as pool:
+        results = pool.map(process_line, rows[1:])
+
+    # Collect results
     for result in results:
-        annotated_rows.append(result)
+        if result is not None:
+            annotated_rows.append(result)
 
-    pool.close()
-    pool.join()
-
-    """ Save the results to a file"""
+    # Save the results to a file
     save_to_file(annotated_rows)
 
     print(f"Finished processing {len(annotated_rows)} rows in {time.time() - start_time} seconds.")
