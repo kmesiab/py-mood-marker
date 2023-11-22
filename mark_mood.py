@@ -1,6 +1,7 @@
 import json
 import multiprocessing
 import sys
+import time
 
 import nltk
 import contractions
@@ -89,8 +90,10 @@ def save_to_file(json_lines):
 
 if __name__ == '__main__':
 
+    start_time = time.time()
+
     """ Thread pool for the main app """
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(maxtasksperchild=100)
     results = pool.map(process_line, rows[1:])
 
     """ Main program loop """
@@ -102,3 +105,5 @@ if __name__ == '__main__':
 
     """ Save the results to a file"""
     save_to_file(annotated_rows)
+
+    print(f"Finished processing {len(annotated_rows)} rows in {time.time() - start_time} seconds.")
