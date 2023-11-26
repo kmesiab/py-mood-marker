@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kmesiab/py-mood-marker/blob/main/LICENSE)
 [![GitHub issues](https://img.shields.io/github/issues/kmesiab/py-mood-marker)](https://github.com/kmesiab/py-mood-marker/issues)
 [![GitHub stars](https://img.shields.io/github/stars/kmesiab/py-mood-marker)](https://github.com/kmesiab/py-mood-marker/stargazers)
+![Lint Status](https://github.com/kmesiab/py-mood-marker/actions/workflows/pylint.yml/badge.svg)
 
 ## Overview 🚀
 Py-Mood-Marker is a Python application designed to analyze conversational data, focusing on extracting sentiments and emotions from text. It reads data from a JSON file, processes each entry to determine the sentiment, emotional content, and overall intensity of sentiments, and outputs enhanced data with these additional metadata.
