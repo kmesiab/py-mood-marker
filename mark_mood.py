@@ -1,3 +1,9 @@
+"""Module for Py-Mood-Marker application.
+
+This module contains functions and logic to analyze sentiments and emotions from text data.
+It includes capabilities to read data, process and analyze it for sentiment and emotional content,
+and output the results with enhanced metadata.
+"""
 import json
 import multiprocessing
 import sys
@@ -7,33 +13,71 @@ import contractions
 from nrclex import NRCLex
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-min_word_count = 5
-output_file_name = "mood-marked.json"
+MIN_WORD_COUNT = 5
+OUTPUT_FILE_NAME = "mood-marked.json"
+INPUT_FILE_NAME = "data.json"
 
 
 def expand_contractions(json_line):
+    """Expand contractions in the text of a JSON line.
+
+    Args:
+        json_line (dict): A JSON object containing the text to be processed.
+
+    Returns:
+        dict: The JSON object with expanded contractions in the text.
+    """
     json_line['text'] = contractions.fix(json_line['text'])
     return json_line
 
 
 def get_emotion(json_line):
+    """Analyze and add emotion scores to a JSON line.
+
+    Args:
+        json_line (dict): A JSON object containing the text to be analyzed.
+
+    Returns:
+        dict: The JSON object with added emotion scores.
+    """
     emotion_analysis = NRCLex(json_line['text'])
-    sorted_emotion_score_values = sorted(emotion_analysis.raw_emotion_scores.items(), key=lambda x: x[1], reverse=True)
-    sorted_emotions_dict = {k: v for k, v in sorted_emotion_score_values}
+    sorted_emotion_score_values = sorted(
+        emotion_analysis.raw_emotion_scores.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    # Simplified way to convert sorted_emotion_score_values to a dictionary
+    sorted_emotions_dict = dict(sorted_emotion_score_values)
     json_line['emotion_scores'] = sorted_emotions_dict
 
     return json_line
 
 
 def get_vader_emotion(json_line):
+    """Analyze text sentiment using VADER and add the scores to a JSON line.
+
+    Args:
+        json_line (dict): A JSON object containing the text to be analyzed.
+
+    Returns:
+        dict: The JSON object with VADER sentiment scores.
+    """
     analyzer = SentimentIntensityAnalyzer()
-    vs = analyzer.polarity_scores(json_line['text'])
-    json_line['vader_emotion_scores'] = vs
+    varder_scores = analyzer.polarity_scores(json_line['text'])
+    json_line['vader_emotion_scores'] = varder_scores
     return json_line
 
 
-# Function to process each line of JSON
 def process_line(json_line):
+    """Process a line of JSON to analyze sentiment and emotions.
+
+    Args:
+        json_line (str): A string representation of a JSON object.
+
+    Returns:
+        dict or None: The processed JSON object, or None if processing fails.
+    """
     if not json_line.strip():
         return None
 
@@ -48,7 +92,7 @@ def process_line(json_line):
 
     word_count = len(json_row['text'].split())
 
-    if word_count < min_word_count:
+    if word_count < MIN_WORD_COUNT:
         return json_row
 
     json_row = get_emotion(json_row)
@@ -59,7 +103,12 @@ def process_line(json_line):
 
 
 def save_to_file(json_lines):
-    with open(output_file_name, 'w') as outfile:
+    """Save the processed JSON lines to a file.
+
+    Args:
+        json_lines (list): A list of processed JSON objects.
+    """
+    with open(OUTPUT_FILE_NAME, 'w', encoding='UTF-8') as outfile:
         json.dump(json_lines, outfile)
 
 
@@ -69,7 +118,7 @@ if __name__ == '__main__':
 
     # Read the input file
     try:
-        with open('data.json', 'r') as file:
+        with open(INPUT_FILE_NAME, 'r', encoding='UTF-8') as file:
             csv_contents = file.read()
     except FileNotFoundError:
         print("Error: The file 'data.json' was not found.")
