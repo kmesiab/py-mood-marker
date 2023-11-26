@@ -41,6 +41,7 @@ def get_emotion(json_line):
         dict: The JSON object with added emotion scores.
     """
     emotion_analysis = NRCLex(json_line['text'])
+    # pylint: disable=no-member
     sorted_emotion_score_values = sorted(
         emotion_analysis.raw_emotion_scores.items(),
         key=lambda x: x[1],
